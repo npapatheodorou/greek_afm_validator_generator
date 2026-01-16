@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Greek AFM Validator & Generator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #4a90e2, #50e3c2);
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+    .container {
+        background: #fff;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        width: 100%;
+        max-width: 480px;
+    }
+    h1 {
+        text-align: center;
+        color: #222;
+    }
+    input, select, button {
+        width: 100%;
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+    button {
+        background: #4a90e2;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s ease;
+    }
+    button:hover {
+        background: #357ABD;
+    }
+    .output {
+        background: #f9f9f9;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-top: 1rem;
+        font-family: monospace;
+        white-space: pre-wrap;
+    }
+    .flex-row {
+        display: flex;
+        gap: 1rem;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AFM Validator & Generator</h1>
+
+    <label>Validate Greek AFM:</label>
+    <input type="text" id="afmInput" placeholder="Enter AFM (9 digits)">
+    <button onclick="checkAFM()">Validate AFM</button>
+    <div id="validateResult" class="output"></div>
+
+    <hr>
+
+    <label>Select Number of Codes:</label>
+    <select id="codeCount">
+        <option value="1">1 code</option>
+        <option value="5">5 codes</option>
+        <option value="10">10 codes</option>
+        <option value="20">20 codes</option>
+        <option value="50">50 codes</option>
+    </select>
+
+    <div class="flex-row">
+        <button onclick="generateCodes(true)">Generate Valid</button>
+        <button onclick="generateCodes(false)">Generate Invalid</button>
+    </div>
+    <div id="generatedList" class="output"></div>
+</div>
+
+<script>
+function validateAFM(afm) {
+    if (afm.length !== 9 || !/^\d+$/.test(afm) || afm === "000000000") return false;
+    let sum = 0;
+    for (let i = 0; i < 8; i++) {
+        sum += parseInt(afm[i], 10) << (8 - i);
+    }
+    const check = (sum % 11) % 10;
+    return check === parseInt(afm[8], 10);
+}
+
+function checkAFM() {
+    const val = document.getElementById("afmInput").value.trim();
+    const result = validateAFM(val);
+    document.getElementById("validateResult").innerText =
+        result ? "✔️ Valid AFM" : "❌ Invalid AFM";
+}
+
+function getRandomIntInclusive(min, max, notEqual = null) {
+    let num;
+    do {
+        num = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while (num === notEqual);
+    return num;
+}
+
+// Generate multiple codes based on selection
+function generateCodes(valid) {
+    const count = parseInt(document.getElementById("codeCount").value, 10);
+    const codes = [];
+
+    for (let j = 0; j < count; j++) {
+        let body = "";
+        let sum = 0;
+        for (let i = 0; i < 8; i++) {
+            const d = getRandomIntInclusive(0, 9);
+            body += d;
+            sum += d << (8 - i);
+        }
+        const lastValid = (sum % 11) % 10;
+        const last = valid ? lastValid : getRandomIntInclusive(0, 9, lastValid);
+        codes.push(body + last);
+    }
+
+    document.getElementById("generatedList").innerText =
+        codes.join("\n");
+}
+</script>
+
+</body>
+</html>
